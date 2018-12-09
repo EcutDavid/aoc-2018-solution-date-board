@@ -67,7 +67,7 @@ function render(members) {
   list.forEach((d, i) => renderRow(d, i))
 }
 
-fetch('http://localhost/373005')
+fetch('http://ec2-13-239-55-237.ap-southeast-2.compute.amazonaws.com/373005')
   .then(d => d.json().then(data => {
     render(data.members)
   }))
