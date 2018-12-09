@@ -1,0 +1,12 @@
+FROM node:10.14
+
+WORKDIR /app
+
+COPY . /app
+
+EXPOSE 80
+
+ENV SESSION EDIT_ME
+ENV BOARD_ID EDIT_ME
+
+CMD ["node", "server.js"]
