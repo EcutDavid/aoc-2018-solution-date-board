@@ -60,7 +60,8 @@ function render(members) {
       const t = Number.parseInt(user.t[day][qIndex].get_star_ts) * 1000
       const date = new Date(t)
       const timeToSecond = `${formatMOrSOrH(date.getHours())}:${formatMOrSOrH(date.getMinutes())}:${formatMOrSOrH(date.getSeconds())}`
-      td.innerText = `${date.getDay()}/${date.getMonth()}/${date.getFullYear()} ${timeToSecond}`
+      // JS date.getMonth returns value start from 0, date.getDate returns value from 1
+      td.innerText = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${timeToSecond}`
       tr.appendChild(td)
     }
   }

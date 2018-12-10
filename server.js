@@ -1,6 +1,8 @@
 const http = require("http")
 const https = require("https")
 const path = require("path")
+const fs = require("fs")
+const url = require("url")
 
 // Map id to JSON.
 const fakeDatabase = {}
@@ -45,6 +47,46 @@ function fetchStuff() {
 }
 fetchStuff()
 
+function serveStaticFiles(req, res) {
+  const parsedUrl = url.parse(req.url)
+  let pathname = `.${parsedUrl.pathname}`
+  const ext = path.parse(pathname).ext
+  // maps file extention to MIME typere
+  const map = {
+    '.ico': 'image/x-icon',
+    '.html': 'text/html',
+    '.js': 'text/javascript',
+    '.css': 'text/css',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg'
+  }
+
+
+  fs.exists(pathname, function (exist) {
+    if (!exist) {
+      // if the file is not found, return 404
+      res.statusCode = 404
+      res.end(`File ${pathname} not found!`)
+      return
+    }
+
+    // if is a directory search for index file matching the extention
+    if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext
+
+    // read file from file system
+    fs.readFile(pathname, function (err, data) {
+      if (err) {
+        res.statusCode = 500
+        res.end(`Error getting the file: ${err}.`)
+      } else {
+        // if the file is found, set Content-type and send data
+        res.setHeader('Content-type', map[ext] || 'text/plain')
+        res.end(data)
+      }
+    })
+  })
+}
+
 const app = http.createServer(function (req, res) {
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -53,21 +95,15 @@ const app = http.createServer(function (req, res) {
     // This application can only provides json, so...
     "Content-type": "application/json",
   }
-  res.writeHead(200, headers)
-
-  const newPath  = path.join(__dirname, req.url)
-  if (newPath.split("/").length < __dirname.split("/").length) {
-    res.end("")
-    return
-  }
-  const components = newPath.split("/")
+  const components = req.url.split("/")
   const id = components[components.length - 1]
-  if (!fakeDatabase[id]) {
-    res.end("")
+  if (fakeDatabase[id]) {
+    res.writeHead(200, headers)
+    res.end(JSON.stringify(fakeDatabase[id]))
     return
   }
 
-  res.end(JSON.stringify(fakeDatabase[id]))
+  serveStaticFiles(req, res)
 })
 app.listen(80)
 
